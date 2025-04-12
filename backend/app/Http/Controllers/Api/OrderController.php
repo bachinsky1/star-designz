@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Product;
 
 class OrderController extends Controller
 {
@@ -12,7 +13,7 @@ class OrderController extends Controller
      */
     public function index()
     {
-        //
+        return auth()->user()->orders()->with('items.product')->get();
     }
 
     /**
@@ -20,7 +21,34 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        $total = 0;
+
+        foreach ($data['items'] as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $total += $product->price * $item['quantity'];
+        }
+
+        $order = auth()->user()->orders()->create([
+            'total' => $total,
+            'status' => 'pending',
+        ]);
+
+        foreach ($data['items'] as $item) {
+            $product = Product::find($item['product_id']);
+            $order->items()->create([
+                'product_id' => $product->id,
+                'quantity' => $item['quantity'],
+                'price' => $product->price,
+            ]);
+        }
+
+        return response->json(['mess' => 'Заказ создан.']);
     }
 
     /**

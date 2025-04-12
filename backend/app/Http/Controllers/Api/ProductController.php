@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -12,7 +13,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        //
+        return Product::with('category')->get();
     }
 
     /**
@@ -26,9 +27,9 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Product $product)
     {
-        //
+        return $product->load('category');
     }
 
     /**
