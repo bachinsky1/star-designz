@@ -27,6 +27,10 @@ sleep 30
 echo -e "Установка PHP-зависимостей Laravel..."
 docker compose exec app composer install
 
+echo -e "$INFO Установка прав на storage и cache..."
+docker compose exec app chmod -R 775 storage bootstrap/cache
+docker compose exec app chown -R www-data:www-data storage bootstrap/cache
+
 echo -e "Генерация ключа приложения..."
 docker compose exec app php artisan key:generate
 
